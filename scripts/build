@@ -1,0 +1,9 @@
+#!/bin/sh
+
+if [ -n "$1" ]
+then
+  docker rmi aweber/$1
+  echo ""
+  docker build -t aweber/$1 $1/
+  docker push aweber/$1
+fi

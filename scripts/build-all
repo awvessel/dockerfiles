@@ -1,0 +1,10 @@
+#!/bin/sh
+
+CONTAINERS=( ubuntu nodejs couchbase elasticsearch grafana graphite influxdb memcached mongodata mongodb pgdata postgresql rabbitmq redisdata redis statsd )
+
+for CONTAINER in "${CONTAINERS[@]}"
+do
+  echo ""
+  docker build -t aweber/$CONTAINER $CONTAINER/
+  docker push aweber/$CONTAINER
+done
