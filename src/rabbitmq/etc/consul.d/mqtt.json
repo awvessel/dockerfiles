@@ -1,0 +1,15 @@
+{
+    "service": {
+        "name": "mqtt",
+        "tags": [
+            "rabbitmq"
+        ],
+        "port": 1883,
+        "check": {
+            "name": "MQTT Check",
+            "notes": "Connect to the port internally every 10 seconds",
+            "script": "nc -z localhost 1883 >/dev/null 2>&1",
+            "interval": "10s"
+        }
+    }
+}

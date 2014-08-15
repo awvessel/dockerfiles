@@ -1,0 +1,12 @@
+{
+    "service": {
+        "name": "redis",
+        "port": 6379,
+        "check": {
+            "name": "Redis Check",
+            "notes": "Connect to the port internally every 10 seconds",
+            "script": "nc -z localhost 6379 >/dev/null 2>&1",
+            "interval": "10s"
+        }
+    }
+}

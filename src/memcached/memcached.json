@@ -1,0 +1,11 @@
+{
+    "service": {
+        "name": "memcached",
+        "port": 11211,
+        "check": {
+            "notes": "Connect to the port internally every 10 seconds",
+            "script": "nc -z localhost 11211 >/dev/null 2>&1",
+            "interval": "10s"
+        }
+    }
+}
