@@ -1,0 +1,6 @@
+{
+{% set carbon = consul.catalog.service('carbon') %}{% if carbon %}  graphitePort: {{carbon[0]['ServicePort']}},
+  graphiteHost: "{{carbon[0]['Address']}}",
+  backends: [ "./backends/graphite" ],
+{% end %}  port: 8125
+}

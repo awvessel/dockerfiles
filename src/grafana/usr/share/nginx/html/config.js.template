@@ -1,0 +1,36 @@
+{% set elasticsearch = consul.catalog.service('elasticsearch') %}
+{% set graphite = consul.catalog.service('graphite') %}
+{% set influxdb = consul.catalog.service('influxdb') %}
+
+define(['settings'],
+function (Settings) {
+  return new Settings({
+    datasources: {
+      {% if graphite %}
+      graphite: {
+        type: 'graphite',
+        url: "http://192.168.50.101:{{graphite[0]['ServicePort']}}",
+        default: true
+      },
+      {% end %}
+      {% if influxdb %}
+      "influxdb:grafana": {
+        type: 'influxdb',
+        url: "http://192.168.50.101:{{influxdb[0]['ServicePort']}}/db/grafana",
+        username: 'root',
+        password: 'root'
+      }
+      {% end %}
+    },
+    elasticsearch: "http://192.168.50.101:{{elasticsearch[0]['ServicePort']}}",
+    default_route: '/dashboard/file/default.json',
+    timezoneOffset: null,
+    grafana_index: "grafana-dash",
+    unsaved_changes_warning: true,
+    playlist_timespan: "1m",
+    plugins: {
+      panels: []
+    }
+
+  });
+});

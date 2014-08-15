@@ -1,0 +1,12 @@
+{
+    "service": {
+        "name": "graphite",
+        "port": 2005,
+        "check": {
+            "name": "Graphite UI",
+            "notes": "Use curl to check the web service every 10 seconds",
+            "script": "curl localhost:2005 >/dev/null 2>&1",
+            "interval": "10s"
+        }
+    }
+}

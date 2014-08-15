@@ -1,0 +1,6 @@
+{
+    "service": {
+        "name": "statsd",
+        "port": 8125
+    }
+}

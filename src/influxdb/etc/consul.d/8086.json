@@ -1,0 +1,15 @@
+{
+    "service": {
+        "name": "influxdb",
+        "tags": [
+            "http"
+        ],
+        "port": 8086,
+        "check": {
+            "name": "InfluxDB API",
+            "notes": "Use curl to check the web service every 10 seconds",
+            "script": "curl localhost:8086 >/dev/null 2>&1",
+            "interval": "10s"
+        }
+    }
+}

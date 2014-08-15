@@ -1,0 +1,15 @@
+{
+    "service": {
+        "name": "grafana",
+        "tags": [
+            "http"
+        ],
+        "port": 9202,
+        "check": {
+            "name": "Grafana HTTP",
+            "notes": "Use curl to check the web service every 10 seconds",
+            "script": "curl localhost:9202 >/dev/null 2>&1",
+            "interval": "10s"
+        }
+    }
+}

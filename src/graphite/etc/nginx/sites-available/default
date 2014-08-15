@@ -1,0 +1,29 @@
+upstream django {
+    server unix:/tmp/uwsgi.sock;
+}
+
+server {
+    listen      2005;
+    server_name graphite;
+    charset     utf-8;
+
+    # Django admin media.
+    location /media/admin/ {
+      alias /usr/lib/python2.7/dist-packages/django/contrib/admin/static/admin/;
+    }
+
+    # For Grafana
+    add_header  "Access-Control-Allow-Origin" "*";
+    add_header  "Access-Control-Allow-Credentials" "true";
+    add_header  "Access-Control-Allow-Methods" "GET, OPTIONS";
+    add_header  "Access-Control-Allow-Headers" "Authorization, origin, accept";
+
+    location /content/ {
+      alias /usr/share/graphite-web/static/;
+    }
+
+    location / {
+      uwsgi_pass  django;
+      include     uwsgi_params;
+    }
+}

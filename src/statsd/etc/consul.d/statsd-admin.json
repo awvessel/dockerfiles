@@ -1,0 +1,12 @@
+{
+    "service": {
+        "name": "statsd:admin",
+        "port": 8126,
+        "check": {
+            "name": "StatsD Admin Check",
+            "notes": "Connect to the port internally every 10 seconds",
+            "script": "nc -z localhost 8126 >/dev/null 2>&1",
+            "interval": "10s"
+        }
+    }
+}
