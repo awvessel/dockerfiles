@@ -1,0 +1,15 @@
+{
+    "service": {
+        "name": "elasticsearch",
+        "tags": [
+            "http"
+        ],
+        "port": 9200,
+        "check": {
+            "name": "Elasticsearch HTTP",
+            "notes": "Use curl to check the web service every 10 seconds",
+            "script": "curl localhost:9200 >/dev/null 2>&1",
+            "interval": "10s"
+        }
+    }
+}
