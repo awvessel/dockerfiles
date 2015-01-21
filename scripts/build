@@ -1,9 +1,59 @@
-#!/bin/sh
+#!/bin/bash
+# Weird temp dir due to CoreOS Filesystem partition allocations
+sudo mkdir -p /opt/tmp && sudo chmod a+rw /opt/tmp
+export TMPDIR="/opt/tmp"
+PREFIX="aweber"
+UBUNTU="ubuntu:trusty"
+PUSH=true
+IMAGES="ubuntu nodejs couchbase elasticsearch grafana graphite influxdb kibana memcached mongodata mongodb pgdata postgresql rabbitmq redis redisdata statsd"
+UBUNTU_COUNT=`docker images | grep -c ubuntu`
 
-if [ -n "$1" ]
-then
-  docker rmi aweber/$1
-  echo ""
-  docker build -t aweber/$1 $1/
-  docker push aweber/$1
+function build {
+  # Pull and squash the latest $UBUNTU image
+  if [[ "$1" = "ubuntu" && "$UBUNTU_COUNT" -eq 0 ]]
+  then
+    echo "Building a squashed version of $UBUNTU"
+    docker pull $UBUNTU && \
+    echo "Squashing $UBUNTU" && \
+    docker save $UBUNTU | sudo TMPDIR=$TMPDIR ./docker-squash -verbose -t $UBUNTU | docker load
+    echo "Done"
+  fi
+
+  IMAGE_COUNT=`docker images | grep -c $PREFIX/$1`
+  echo "Found ${IMAGE_COUNT} $PREFIX/$1 image(s)"
+  if [  "${IMAGE_COUNT}" -gt 0 ]
+  then
+    echo "Removing old image of $PREFIX/$1"
+    docker rmi $PREFIX/$1
+  fi
+
+  echo "Building $1"
+  docker build -t tmp-$1 $1/ && \
+  echo "Squashing $PREFIX/$1"  && \
+  docker save tmp-$1 | sudo TMPDIR=$TMPDIR ./docker-squash -t $PREFIX/$1 | docker load && \
+  echo "Tagging $PREFIX/$1" && \
+  docker rmi tmp-$1
+
+  if [[ "$PUSH" = true && $? -eq 0 ]]
+  then
+    echo "Pushing ${PREFIX}/$1"
+    docker push $PREFIX/$1
+  fi
+}
+
+function buildAll {
+  for image in $IMAGES
+  do
+    build $1
+    if [[ $? -ne 0 ]]; then
+      echo "Error building $1, halting"
+      break
+    fi
+  done
+}
+
+if [ "$#" -eq 1 ]; then
+  build $1
+else
+  buildAll
 fi
