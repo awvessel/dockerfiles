@@ -1,0 +1,12 @@
+{
+    "service": {
+        "name": "postgresql",
+        "port": 5432,
+        "check": {
+            "name": "PostgreSQL Check",
+            "notes": "Connect to the port internally every 10 seconds",
+            "script": "nc -z localhost 5432 >/dev/null 2>&1",
+            "interval": "10s"
+        }
+    }
+}
