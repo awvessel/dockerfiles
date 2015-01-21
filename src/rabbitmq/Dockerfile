@@ -11,7 +11,7 @@ RUN \
   echo "deb http://packages.erlang-solutions.com/debian precise contrib" > /etc/apt/sources.list.d/erlang-solutions.list
 
 # Update the repository indexes and install Erlang and RabbitMQ
-RUN apt-get -qq update && apt-get install -y -qq rabbitmq-server && apt-get clean
+RUN apt-get -qq update && apt-get install -y -qq rabbitmq-server curl unzip
 
 # Write out a rabbitmq.config that allows for the guest user to connect from an external IP address
 ADD etc/rabbitmq/rabbitmq.config /etc/rabbitmq/rabbitmq.config
@@ -19,19 +19,26 @@ ADD etc/rabbitmq/rabbitmq.config /etc/rabbitmq/rabbitmq.config
 # Download and install plugins
 RUN \
   curl -L -o /tmp/plugin.zip "https://raw.githubusercontent.com/aweber/pgsql-listen-exchange/binary/pgsql-listen-3-3-x-v-0-2-0.zip" && \
-  cd /tmp && unzip plugin.zip && mv *.ez /usr/lib/rabbitmq/lib/rabbitmq_server-3.3.5/plugins/ && \
+  cd /tmp && unzip plugin.zip && mv *.ez /usr/lib/rabbitmq/lib/rabbitmq_server-3.4.3/plugins/ && \
   rm plugin.zip && \
   curl -L -o /tmp/plugin.zip "https://raw.githubusercontent.com/aweber/influxdb-storage-exchange/binaries/influxdb-storage-exchange-0.1.1.zip" && \
-  cd /tmp && unzip plugin.zip && mv *.ez /usr/lib/rabbitmq/lib/rabbitmq_server-3.3.5/plugins/ && \
+  cd /tmp && unzip plugin.zip && mv *.ez /usr/lib/rabbitmq/lib/rabbitmq_server-3.4.3/plugins/ && \
   rm plugin.zip && \
-  curl -L -o /usr/lib/rabbitmq/lib/rabbitmq_server-3.3.5/plugins/rabbitmq_top-3.3.x-52014a9c.ez http://www.rabbitmq.com/community-plugins/v3.3.x/rabbitmq_top-3.3.x-52014a9c.ez && \
-  curl -L -o /usr/lib/rabbitmq/lib/rabbitmq_server-3.3.5/plugins/rabbitmq_sharding-3.3.x-6d7e9bff.ez http://www.rabbitmq.com/community-plugins/v3.3.x/rabbitmq_sharding-3.3.x-6d7e9bff.ez && \
-  curl -L -o /usr/lib/rabbitmq/lib/rabbitmq_server-3.3.5/plugins/rabbitmq_event_exchange-3.3.x-12eef624.ez http://www.rabbitmq.com/community-plugins/v3.3.x/rabbitmq_event_exchange-3.3.x-12eef624.ez && \
-  curl -L -o /usr/lib/rabbitmq/lib/rabbitmq_server-3.3.5/plugins/rabbitmq_management_exchange-3.3.x-d70900ca.ez http://www.rabbitmq.com/community-plugins/v3.3.x/rabbitmq_management_exchange-3.3.x-d70900ca.ez && \
-  curl -L -o /usr/lib/rabbitmq/lib/rabbitmq_server-3.3.5/plugins/rabbitmq_priority_queue-3.3.x-72d20292.ez http://www.rabbitmq.com/community-plugins/v3.3.x/rabbitmq_priority_queue-3.3.x-72d20292.ez
+  curl -L -o /usr/lib/rabbitmq/lib/rabbitmq_server-3.4.3/plugins/rabbitmq_top-3.4.x-b1364318.ez http://www.rabbitmq.com/community-plugins/v3.4.x/rabbitmq_top-3.4.x-b1364318.ez && \
+  curl -L -o /usr/lib/rabbitmq/lib/rabbitmq_server-3.4.3/plugins/rabbitmq_sharding-3.4.x-bccd6750.ez http://www.rabbitmq.com/community-plugins/v3.4.x/rabbitmq_sharding-3.4.x-bccd6750.ez && \
+  curl -L -o /usr/lib/rabbitmq/lib/rabbitmq_server-3.4.3/plugins/rabbitmq_event_exchange-3.4.x-4813af15.ez http://www.rabbitmq.com/community-plugins/v3.4.x/rabbitmq_event_exchange-3.4.x-4813af15.ez && \
+  curl -L -o /usr/lib/rabbitmq/lib/rabbitmq_server-3.4.3/plugins/rabbitmq_management_exchange-3.4.x-54acd65b.ez http://www.rabbitmq.com/community-plugins/v3.4.x/rabbitmq_management_exchange-3.4.x-54acd65b.ez && \
+  curl -L -o /usr/lib/rabbitmq/lib/rabbitmq_server-3.4.3/plugins/rabbitmq_priority_queue-3.4.x-3431dc1e.ez http://www.rabbitmq.com/community-plugins/v3.4.x/rabbitmq_priority_queue-3.4.x-3431dc1e.ez
+
+# Clean up apt-leftovers
+RUN apt-get -qq -y remove curl unzip
+RUN apt-get autoremove -y
+RUN apt-get clean
+RUN rm -rf /var/lib/{apt,dpkg,cache,log}/
+
 
 # Enable plugins
-RUN rabbitmq-plugins enable rabbitmq_consistent_hash_exchange rabbitmq_management rabbitmq_federation rabbitmq_federation_management rabbitmq_mqtt rabbitmq_tracing rabbitmq_priority_queue rabbitmq_management_exchange rabbitmq_event_exchange rabbitmq_sharding rabbitmq_top pgsql_listen_exchange influxdb_storage_exchange
+RUN rabbitmq-plugins --offline enable rabbitmq_consistent_hash_exchange rabbitmq_management rabbitmq_federation rabbitmq_federation_management rabbitmq_mqtt rabbitmq_tracing rabbitmq_priority_queue rabbitmq_management_exchange rabbitmq_event_exchange rabbitmq_sharding rabbitmq_top pgsql_listen_exchange influxdb_storage_exchange
 
 # Export the volumes for configuration and log file examination
 VOLUME ["/etc/rabbitmq", "/var/log/rabbitmq"]
@@ -42,10 +49,10 @@ ENV HOME /var/lib/rabbitmq
 ADD etc/consul.d/amqp.json /etc/consul.d/amqp.json
 ADD etc/consul.d/http.json /etc/consul.d/http.json
 ADD etc/consul.d/mqtt.json /etc/consul.d/mqtt.json
-ADD etc/supervisor/conf.d/rabbitmq.conf /etc/supervisor/conf.d/rabbitmq.conf
+ADD etc/supervisor.d/rabbitmq.conf /etc/supervisor.d/rabbitmq.conf
 
 # Ports to expose
 EXPOSE 1883 4369 5672 15672 25672
 
 # Seems to be dropped off
-CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
